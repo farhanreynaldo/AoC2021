@@ -28,6 +28,10 @@ count_increasing <- function(depths) {
 
 stopifnot(count_increasing(depths) == 7)
 
+input <- read_file('input/day01.txt') %>% 
+  read_lines() %>% 
+  as.numeric()
+
 print(count_increasing(input))
 
 rolling_sum <- function(depths) {
