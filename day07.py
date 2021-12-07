@@ -17,7 +17,8 @@ print(minimum_fuel(input))
 
 
 def fuel_consumption(pos, crab):
-    return sum(range(abs(pos - crab) + 1))
+    n = abs(pos - crab)
+    return n * (n + 1) / 2
 
 
 def minimum_fuel_costly(input):
