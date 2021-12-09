@@ -1,4 +1,3 @@
-from itertools import product
 from collections import deque
 from math import prod
 
@@ -11,68 +10,47 @@ SAMPLES = """
 """
 
 
-def find_adjacents(point):
-    adjacents = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # up, right, left, down
+def neighbors(point):
+    dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # up, right, left, down
     x, y = point
-    for xi, yi in adjacents:
+    for xi, yi in dirs:
         yield x + xi, y + yi
 
 
-def is_lowest(input):
-    matrix = [[int(col) for col in row] for row in input.strip().split("\n")]
-    n_row, n_col = len(matrix), len(matrix[0])
-    total = 0
-    for x, y in product(range(n_row), range(n_col)):
-        if all(
-            matrix[x][y] < matrix[xi][yi]
-            for xi, yi in find_adjacents((x, y))
-            if xi >= 0 and xi < n_row and yi >= 0 and yi < n_col
-        ):
-            total += matrix[x][y] + 1
-    return total
-
-
-assert is_lowest(SAMPLES) == 15
-input = open("input/day09.txt").read()
-print(is_lowest(input))
-
-
 def lowest_point(input):
-    matrix = [[int(col) for col in row] for row in input.strip().split("\n")]
-    n_row, n_col = len(matrix), len(matrix[0])
-    for x, y in product(range(n_row), range(n_col)):
-        if all(
-            matrix[x][y] < matrix[xi][yi]
-            for xi, yi in find_adjacents((x, y))
-            if xi >= 0 and xi < n_row and yi >= 0 and yi < n_col
-        ):
-            yield x, y
-
-
-def largest_basins(input):
     grids = {
         (x, y): int(col)
         for x, row in enumerate(input.strip().split("\n"))
         for y, col in enumerate(row)
     }
+    points = [
+        p
+        for p in grids
+        if all(grids[p] < grids[np] for np in neighbors(p) if np in grids)
+    ]
+    return grids, points
 
+
+def total_risks(input):
+    grids, points = lowest_point(input)
+    return sum(grids[p] + 1 for p in points)
+
+
+assert total_risks(SAMPLES) == 15
+input = open("input/day09.txt").read()
+print(total_risks(input))
+
+
+def largest_basins(input):
+    grids, points = lowest_point(input)
     basins = []
-    matrix = [[int(col) for col in row] for row in input.strip().split("\n")]
-    n_row, n_col = len(matrix), len(matrix[0])
-    for point in lowest_point(input):
+    for p in points:
         visited = deque()
-        queue = deque([point])
+        queue = deque([p])
         while queue:
             cur = queue.popleft()
-            for np in find_adjacents(cur):
-                if (
-                    np in visited
-                    or np[0] < 0
-                    or np[0] >= n_row
-                    or np[1] < 0
-                    or np[1] >= n_col
-                    or grids[np] == 9
-                ):
+            for np in neighbors(cur):
+                if np not in grids or np in visited or grids[np] == 9:
                     continue
                 visited.append(np)
                 queue.append(np)
